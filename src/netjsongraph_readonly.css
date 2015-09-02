@@ -1,0 +1,36 @@
+
+#selectGroup {
+        text-align: center;
+        box-shadow: 0 0 10px #ccc;
+        position: fixed;
+        left: 50%;
+        top: 50%;
+        width: 50%;
+        margin-top: -7.5em;
+        margin-left: -25%;
+        padding: 5em 2em;
+}
+#selectGroup select {
+        font-size: 2em;
+        padding: 10px 15px;
+        width: 50%;
+        cursor: pointer;
+}
+#selectGroup option {
+        padding: 0.5em;
+}
+#selectGroup option[value=""] {
+        color: #aaa;
+}
+
+.hidden {
+        display: none !important;
+        visibility: hidden !important;
+}
+
+/* SVG STYLES */
+.link {
+        stroke-opacity: 0.4;
+        stroke-width: 2;
+        stroke: #999;
+}

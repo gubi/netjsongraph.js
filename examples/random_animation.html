@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+        <title>netjsongraph.js: Random animation example</title>
+        <meta charset="utf-8">
+        <link rel="stylesheet" type="text/css" href="../src/netjsongraph_readonly.css" />
+        <link href="../src/netjsongraph-theme_readonly.css" rel="stylesheet">
+</head>
+<body>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
+        <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+        <script src="../src/netjsongraph.js"></script>
+        <script>
+        /**
+         * Returns a random integer between min (inclusive) and max (inclusive)
+         * Using Math.round() will give you a non-uniform distribution!
+         */
+        function getRandomInt(min, max) {
+            return Math.floor(Math.random() * (max - min)) + min;
+        }
+
+
+        var data = {
+                metadata: false,
+                randomAnimation: true,
+                animationAtStart: false,
+                onClickNode: function() { return false },
+                onClickLink: function() { return false },
+                defaultStyle: false,
+                nodeSize: 5,
+                d3style: function(d) {
+                        var colors = d3.scale.quantize().domain([3, 5, 2]).range(["#333", "#666", "#999"]);
+                        return colors(d);
+                },
+                linkDistance: 80,
+                charge: -40,
+                gravity: 2,
+                alpha: 0
+        },
+        addressesCount = 100,
+        ipAddress = "",
+        randomNodes = getRandomInt(addressesCount),
+        randomLinks = getRandomInt(addressesCount),
+        ips = [],
+        nodes = [],
+        links = [];
+
+        for(var n = 0; n < addressesCount; n++) {
+                var ipAddress = "192.168." + getRandomInt(0, 255) + "." + getRandomInt(0, 255);
+                ips.push(ipAddress);
+        }
+        ips.forEach(function(node, n) {
+                var minCost = 0.5,
+                maxCost = 2,
+                minBitrate = 2,
+                maxBitrate = 200,
+                randomSourceIP = node,
+                randomTargetIP = ips[getRandomInt(n, addressesCount)];
+                console.warn(ips, n, addressesCount, getRandomInt(n, addressesCount), randomSourceIP);
+                var randomNode = {
+                        "id": node,
+                        "label": "Node_" + n,
+                        "properties": {
+                                "hostname": "Host Node_" + n
+                        }
+                },
+                randomLink = {
+                        "source": node,
+                        "target": randomTargetIP,
+                        "cost": getRandomInt(minCost, maxCost, 10),
+                        "properties": {
+                            "lq": 0.900,
+                            "nlq": 0.497,
+                            "bitrate": getRandomInt(minBitrate, maxBitrate) + " mbit/s"
+                        }
+                };
+                nodes.push(randomNode);
+                links.push(randomLink);
+        });
+        var json = {
+                "type": "RandomGraph",
+                "protocol": "OLSR",
+                "version": "0.1",
+                "revision": "6ec73b8f5213cc740816f2fd2ff93108",
+                "metric": "ETX",
+                "router_id": "0.0.0.0",
+                "nodes": nodes,
+                "links": links
+        };
+        // // d3.netJsonGraph("netjson_networkcollection.json");
+        d3.netJsonGraph(json, data);
+
+        </script>
+</body>
+</html>

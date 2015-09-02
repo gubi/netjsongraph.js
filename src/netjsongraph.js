@@ -80,6 +80,7 @@
                   * @param  {string}     el                      "body"          The container element                                                                  el: "body" [description]
                   * @param  {bool}       metadata                true            Display NetJSON metadata at startup?
                   * @param  {bool}       defaultStyle            true            Use css style?
+                  * @param  {function}   d3style                 null            A function that returns your own d3.scale color scale. @see {@link https://github.com/mbostock/d3/wiki/Scales}
                   * @param  {int}        tooltipDelay            0               The delay before showing tooltip
                   * @param  {bool}       animationAtStart        false           Animate nodes or not on load
                   * @param  {bool}       randomAnimation         false           Animate nodes randomly
@@ -101,9 +102,11 @@
                          el: "body",
                          metadata: true,
                          defaultStyle: true,
+                         nodeSize: 7,
                          tooltipDelay: 300,
                          animationAtStart: true,
                          randomAnimation: false,
+                         interactions: false,
                          scaleExtent: [0.25, 5],
                          charge: -130,
                          linkDistance: 40,
@@ -373,39 +376,56 @@
 
                          var data = opts.prepareData(graph),
                          links = data.links,
-                         nodes = data.nodes;
-                         // disable some transitions while dragging
-                         drag.on('dragstart', function(n){
-                                 d3.event.sourceEvent.stopPropagation();
-                                 d3.select(this).on("mouseover", null);
-                                 zoom.on('zoom', null);
-                         })
-                         // re-enable transitions when dragging stops
-                         .on('dragend', function(n){
-                                 d3.select(this).on("mouseover", onMouseOverNode);
-                                 zoom.on('zoom', opts.redraw);
-                         })
-                         .on("drag", function(d) {
-                                 // avoid pan & drag conflict
-                                 d3.select(this).attr("x", d.x = d3.event.x).attr("y", d.y = d3.event.y);
-                         });
+                         nodes = data.nodes,
+                         link, node;
+                         if(opts.interactions) {
+                                 // disable some transitions while dragging
+                                 drag.on('dragstart', function(n){
+                                         d3.event.sourceEvent.stopPropagation();
+                                         d3.select(this).on("mouseover", null);
+                                         zoom.on('zoom', null);
+                                 })
+                                 // re-enable transitions when dragging stops
+                                 .on('dragend', function(n){
+                                         d3.select(this).on("mouseover", onMouseOverNode);
+                                         zoom.on('zoom', opts.redraw);
+                                 })
+                                 .on("drag", function(d) {
+                                         // avoid pan & drag conflict
+                                         d3.select(this).attr("x", d.x = d3.event.x).attr("y", d.y = d3.event.y);
+                                 });
+                                 force.nodes(nodes).links(links).start();
 
-                         force.nodes(nodes).links(links).start();
+                                 link = panner.selectAll(".link")
+                                         .data(links)
+                                         .enter().append("line")
+                                         .attr("class", "njg-link")
+                                         .on("click", opts.onClickLink);
+                                 node = panner.selectAll(".node")
+                                         .data(nodes)
+                                         .enter().append("circle")
+                                         .attr("class", "njg-node")
+                                         .attr("r", 7)
+                                         .on("mouseover", onMouseOverNode)
+                                         .on("mouseout", onMouseOutNode)
+                                         .on("click", opts.onClickNode)
+                                         .call(drag);
+                         } else {
+                                zoom.on("zoom", null);
+                                drag.on("drag", null);
+                                force.nodes(nodes).links(links).start();
 
-                         var link = panner.selectAll(".link")
-                                 .data(links)
-                                 .enter().append("line")
-                                 .attr("class", "njg-link")
-                                 .on("click", opts.onClickLink),
-                         node = panner.selectAll(".node")
-                                 .data(nodes)
-                                 .enter().append("circle")
-                                 .attr("class", "njg-node")
-                                 .attr("r", 7)
-                                 .on("mouseover", onMouseOverNode)
-                                 .on("mouseout", onMouseOutNode)
-                                 .on("click", opts.onClickNode)
-                                 .call(drag);
+                                link = panner.selectAll(".link")
+                                        .data(links)
+                                        .enter().append("line")
+                                        .attr("class", "njg-link");
+                                node = panner.selectAll(".node")
+                                        .data(nodes)
+                                        .enter().append("circle")
+                                        .attr("class", "njg-node")
+                                        .attr("r", opts.nodeSize);
+                         }
+
 
                          // Close overlay
                          closeOverlay.on("click", function() {
@@ -414,7 +434,6 @@
                          });
                          // Close Metadata panel
                          closeMetadata.on("click", function() {
-                                 console.log(graph);
                                  // Reinitialize the page
                                  if(graph.type === "NetworkCollection") {
                                          reInit();
@@ -443,6 +462,11 @@
                                  if(opts.metadata) {
                                          metadata.attr("class", "njg-metadata").attr("style", "display: block");
                                  }
+                         } else {
+                                 node.style(opts.d3style);
+                                 node.style({
+                                         "fill": function(d){ return opts.d3style(d.linkCount); }
+                                 });
                          }
 
                          var attrs = ["protocol",

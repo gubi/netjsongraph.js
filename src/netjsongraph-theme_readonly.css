@@ -1,0 +1,19 @@
+body {
+        overflow: hidden;
+}
+
+.njg-node{
+        stroke-opacity: 0.6;
+        stroke-width: 2px;
+        stroke: #fff;
+}
+
+.njg-node.njg-open {
+        stroke: rgba(0, 0, 0, 0.4);
+}
+
+.njg-link{
+        stroke: #999;
+        stroke-width: 2;
+        stroke-opacity: 0.25;
+}
